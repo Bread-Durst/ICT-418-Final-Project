@@ -34,6 +34,22 @@ sudo systemctl restart httpd.service
 sudo apt install php-curl php-xml php-imagick php-mbstring php-zip php-intl
 sudo systemctl restart httpd.service
 sudo systemctl restart mariadb
+
+#This part is the same as Ubuntu
+
 sudo dnf install wget
 sudo wget https://wordpress.org/latest.tar.gz
 sudo tar -xzvf latest.tar.gz
+sudo su
+mariadb -u root
+create user 'wordpress'@'localhost' identified by 'XXXXXXXXX';
+create database wordpress;
+grant all privileges on wordpress.* to 'wordpress'@'localhost';
+cd /var/www/html/wordpress
+sudo cp wp-config-sample.php wp-config.php
+sudo nano wp-config.php
+#Edit file to include wordpress database and user info.  Add code 'define('FS_METHOD','direct');' to block FTP uploads
+
+
+
+
