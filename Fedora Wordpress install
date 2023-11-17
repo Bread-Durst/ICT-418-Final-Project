@@ -15,7 +15,25 @@ sudo systemctl enable httpd.service
 
 sudo dnf install w3m
 
+#Install MariaDB
+
+sudo dnf install mariadb-server
+sudo systemctl enable mariadb 
+sudo systemctl start mariadb 
+sudo systemctl status mariadb 
+sudo mysql_secure_installation 
+
 #Install PHP
 
-sudo dnf -y install http://rpms.remirepo.net/fedora/remi-release-38.rpm
+sudo dnf install php php-common php-mysqlnd
+sudo dnf install php-xml php-json php-gd php-mbstring 
 sudo systemctl restart httpd.service
+
+#Install Wordpress
+
+sudo apt install php-curl php-xml php-imagick php-mbstring php-zip php-intl
+sudo systemctl restart httpd.service
+sudo systemctl restart mariadb
+sudo dnf install wget
+sudo wget https://wordpress.org/latest.tar.gz
+sudo tar -xzvf latest.tar.gz
