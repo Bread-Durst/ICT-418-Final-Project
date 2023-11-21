@@ -38,3 +38,58 @@ gcloud compute instances create www3 \
       service apache2 restart
       echo "
 <h3>Web Server: www3</h3>" | tee /var/www/html/index.html'
+
+#Creating the Firewall rule
+gcloud compute firewall-rules create www-firewall-network-lb \
+    --target-tags network-lb-tag --allow tcp:80
+
+#Configure the load balancer
+gcloud compute addresses create network-lb-ip-1 \
+  --region us-central1
+
+gcloud compute http-health-checks create basic-check
+
+gcloud compute target-pools create www-pool \
+  --region us-central1 --http-health-check basic-check
+
+gcloud compute target-pools add-instances www-pool \
+    --instances www1,www2,www3
+
+gcloud compute forwarding-rules create www-rule \
+    --region  us-central1 \
+    --ports 80 \
+    --address network-lb-ip-1 \
+    --target-pool www-pool
+
+#Accessing and showing the external IP address
+gcloud compute forwarding-rules describe www-rule --region us-central1
+
+IPADDRESS=$(gcloud compute forwarding-rules describe www-rule --region us-central1 --format="json" | jq -r .IPAddress)
+
+#IP Address
+
+35.202.192.255
+
+#Create HTTP Load Balancer
+
+gcloud compute instance-templates create lb-backend-template \
+   --region=us-central1 \
+   --network=default \
+   --subnet=default \
+   --tags=allow-health-check \
+   --machine-type=e2-medium \
+   --image-family=debian-11 \
+   --image-project=debian-cloud \
+   --metadata=startup-script='#!/bin/bash
+     apt-get update
+     apt-get install apache2 -y
+     a2ensite default-ssl
+     a2enmod ssl
+     vm_hostname="$(curl -H "Metadata-Flavor:Google" \
+     http://169.254.169.254/computeMetadata/v1/instance/name)"
+     echo "Page served from: $vm_hostname" | \
+     tee /var/www/html/index.html
+     systemctl restart apache2'
+
+gcloud compute instance-groups managed create lb-backend-group \
+   --template=lb-backend-template --size=2 --zone=us-central1-a
